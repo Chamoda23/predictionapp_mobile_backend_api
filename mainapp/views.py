@@ -1,5 +1,4 @@
 from django.shortcuts import render
-import requests
 from rest_framework import generics
 from rest_framework.response import Response
 from .serializers import RequestSerializer, PredictionSerializer
