@@ -1,2 +1,2 @@
 heroku ps:scale web=1
-web: gunicorn mobile_app_django_restapi.wsgi --log-file -
+web:gunicorn mobile_app_django_restapi.wsgi --log-file -
