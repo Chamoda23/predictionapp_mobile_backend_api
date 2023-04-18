@@ -1,2 +1,1 @@
-web:gunicorn mobile_app_django_restapi.wsgi --log-file -
-web: python manage.py runserver 0.0.0.0:$PORT --noreload
+web: gunicorn mobile_app_django_restapi.wsgi 
