@@ -2,7 +2,8 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
 from .serializers import RequestSerializer, PredictionSerializer
-
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+import pandas as pd
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")
@@ -106,10 +107,13 @@ class PredictView(generics.CreateAPIView):
         # Predict probabilities for each disease given a set of symptoms
         
         # Load the Logistic Regression model
-        best_model = joblib.load("models/lr_model.joblib")
+        best_model = joblib.load("models/best_model.jolib")
+        X_train = pd.read_csv('models/X_train.csv')
         symptoms_encoder = OneHotEncoder(handle_unknown='ignore')
+        symptoms_encoder.fit(X_train.drop(['Unnamed: 0'], axis=1))
         symptoms_encoded = symptoms_encoder.transform([binary_input])
         probabilities = best_model.predict_proba(symptoms_encoded)
+     
         disease_probabilities = {}
         for i, disease in enumerate(best_model.classes_):
             disease_probabilities[disease] = round(probabilities[0][i] * 100, 2)
