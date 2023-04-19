@@ -90,10 +90,8 @@ class PredictView(generics.CreateAPIView):
         symptoms_keys = ['COUGH', 'MUSCLE_ACHES', 'TIREDNESS', 'SORE_THROAT', 'RUNNY_NOSE', 'STUFFY_NOSE',
                          'FEVER', 'NAUSEA', 'VOMITING', 'DIARRHEA', 'SHORTNESS_OF_BREATH', 'DIFFICULTY_BREATHING',
                          'LOSS_OF_TASTE', 'LOSS_OF_SMELL', 'ITCHY_NOSE', 'ITCHY_EYES', 'ITCHY_MOUTH', 'ITCHY_INNER_EAR',
-                         'SNEEZING', 'PINK_EYE',
-                         'SKIN_RASH', 'CHILLS', 'jOINT_PAIN', 'FATIGUE', 'HEAD_ACHE', 'LOSS_OF_APPETITES',
-                         'PAIN_BEHIND_THE_EYES', 'BACK_PAIN',
-                         'MALAISE', 'RED_SPOTS_OVER_BODY']
+                         'SNEEZING', 'PINK_EYE','SKIN_RASH', 'CHILLS', 'jOINT_PAIN', 'FATIGUE', 'HEADACHE', 'LOSS_OF_APPETITES',
+                         'PAIN_BEHIND_THE_EYES', 'BACK_PAIN','MALAISE', 'RED_SPOTS_OVER_BODY']
         # Input symptoms as text
         input_symptoms = symptoms
 
