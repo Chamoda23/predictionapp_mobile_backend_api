@@ -105,18 +105,29 @@ class PredictView(generics.CreateAPIView):
             if symptom in symptoms_keys:
                 binary_input[symptoms_keys.index(symptom)] = 1
 
+        # Predict probabilities for each disease given a set of symptoms
+        
         # Load the Logistic Regression model
-        clf = joblib.load("models/RandomForestClassifier.pkl")
+        best_model = joblib.load("models/lr_model.joblib")
+        symptoms_encoder = OneHotEncoder(handle_unknown='ignore')
+        symptoms_encoded = symptoms_encoder.transform([binary_input])
+        probabilities = best_model.predict_proba(symptoms_encoded)
+        disease_probabilities = {}
+        for i, disease in enumerate(best_model.classes_):
+            disease_probabilities[disease] = round(probabilities[0][i] * 100, 2)
+        print(disease_probabilities)
+       
+        
 
-        # Make predictions on the binary input data
-        predictions = clf.predict(binary_input.reshape(1, -1))
-        print(binary_input.reshape(1, -1))
-        # The output will be the predicted disease
-        print(predictions)
+#         # Make predictions on the binary input data
+#         predictions = clf.predict(binary_input.reshape(1, -1))
+#         print(binary_input.reshape(1, -1))
+#         # The output will be the predicted disease
+#         print(predictions)
 
         data = {
             'symptoms': symptoms,
-            'prediction': predictions
+            'prediction': disease_probabilities
         }
 
         return Response(data=data)
