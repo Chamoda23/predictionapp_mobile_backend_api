@@ -110,9 +110,10 @@ class PredictView(generics.CreateAPIView):
             disease_probabilities, key=disease_probabilities.get)
         highest_prob_percentage = disease_probabilities[highest_prob_disease]
         print(highest_prob_percentage)
+        print(highest_prob_disease)
 
         data = {
             'symptoms': symptoms,
-            'prediction': "{} - {}%".format(disease, highest_prob_percentage)
+            'prediction': "{} - {}%".format(highest_prob_disease, highest_prob_percentage)
         }
         return Response(data=data)
