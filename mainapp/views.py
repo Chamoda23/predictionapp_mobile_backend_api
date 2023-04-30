@@ -1,19 +1,17 @@
+from google.cloud import translate_v2 as translate
+import spacy
+import joblib
+import numpy as np
+import os
 from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
 from .serializers import RequestSerializer, PredictionSerializer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-import pandas as pd
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")
-import os
-import numpy as np
-import joblib
-import spacy
 
 # Import the required libraries
-from google.cloud import translate_v2 as translate
 
 
 # Create your views here.
@@ -50,14 +48,11 @@ class RequestView(generics.CreateAPIView):
             # Define the input text
             input_text = text
             # Use the translation API to translate the input text
-            result = translate_client.translate(input_text, source_language='si', target_language='en')
-            # result = translate_client.translate(
-            #     text, source_language='en', target_language=target)
-            # Print the translated text
+            result = translate_client.translate(
+                input_text, source_language='si', target_language='en')
             print('Input text: ', input_text)
             print('Translated text: ', result['translatedText'])
             extracted_symptoms = extract_symptoms(result['translatedText'])
-            print(extracted_symptoms)
 
             data = {
                 'symptoms': extracted_symptoms,
@@ -66,7 +61,6 @@ class RequestView(generics.CreateAPIView):
             return Response(data=data)
         else:
             extracted_symptoms = extract_symptoms(text)
-            print(extracted_symptoms)
 
             data = {
                 'symptoms': extracted_symptoms,
@@ -84,52 +78,41 @@ class PredictView(generics.CreateAPIView):
 
         text = serializer.validated_data['text']
         symptoms = serializer.validated_data['symptoms']
+        if len(symptoms) == 0:
+            extracted_symptoms = self._extract_symptoms(text)
+        else:
+            extracted_symptoms = symptoms
 
         """## **Disease Prediction**"""
 
+        input_symptoms = eval(extracted_symptoms)
         # List of all possible symptoms
         symptoms_keys = ['COUGH', 'MUSCLE_ACHES', 'TIREDNESS', 'SORE_THROAT', 'RUNNY_NOSE', 'STUFFY_NOSE',
                          'FEVER', 'NAUSEA', 'VOMITING', 'DIARRHEA', 'SHORTNESS_OF_BREATH', 'DIFFICULTY_BREATHING',
                          'LOSS_OF_TASTE', 'LOSS_OF_SMELL', 'ITCHY_NOSE', 'ITCHY_EYES', 'ITCHY_MOUTH', 'ITCHY_INNER_EAR',
-                         'SNEEZING', 'PINK_EYE','SKIN_RASH', 'CHILLS', 'jOINT_PAIN', 'FATIGUE', 'HEADACHE', 'LOSS_OF_APPETITES',
-                         'PAIN_BEHIND_THE_EYES', 'BACK_PAIN','MALAISE', 'RED_SPOTS_OVER_BODY']
-        # Input symptoms as text
-        input_symptoms = symptoms
+                         'SNEEZING', 'PINK_EYE', 'SKIN_RASH', 'CHILLS', 'jOINT_PAIN', 'FATIGUE', 'HEADACHE', 'LOSS_OF_APPETITES',
+                         'PAIN_BEHIND_THE_EYES', 'BACK_PAIN', 'MALAISE', 'RED_SPOTS_OVER_BODY']
 
         # Create an empty array to store the binary values
         binary_input = np.zeros(len(symptoms_keys))
-
-        # Iterate over the input symptoms and set the corresponding element in the binary array to 1
         for symptom in input_symptoms:
             if symptom in symptoms_keys:
                 binary_input[symptoms_keys.index(symptom)] = 1
 
-        # Predict probabilities for each disease given a set of symptoms
-        
-        # Load the Logistic Regression model
         best_model = joblib.load("models/best_model.jolib")
-        X_train = pd.read_csv('models/X_train.csv')
-        symptoms_encoder = OneHotEncoder(handle_unknown='ignore')
-        symptoms_encoder.fit(X_train.drop(['Unnamed: 0'], axis=1))
-        symptoms_encoded = symptoms_encoder.transform([binary_input])
-        probabilities = best_model.predict_proba(symptoms_encoded)
-     
+        probabilities = best_model.predict_proba(binary_input.reshape(1, -1))
         disease_probabilities = {}
         for i, disease in enumerate(best_model.classes_):
-            disease_probabilities[disease] = round(probabilities[0][i] * 100, 2)
-        print(disease_probabilities)
-       
-        
+            disease_probabilities[disease] = round(
+                probabilities[0][i] * 100, 2)
 
-#         # Make predictions on the binary input data
-#         predictions = clf.predict(binary_input.reshape(1, -1))
-#         print(binary_input.reshape(1, -1))
-#         # The output will be the predicted disease
-#         print(predictions)
+        highest_prob_disease = max(
+            disease_probabilities, key=disease_probabilities.get)
+        highest_prob_percentage = disease_probabilities[highest_prob_disease]
+        print(highest_prob_percentage)
 
         data = {
             'symptoms': symptoms,
-            'prediction': disease_probabilities
+            'prediction': "{} - {}%".format(disease, highest_prob_percentage)
         }
-
         return Response(data=data)
