@@ -8,6 +8,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from .serializers import RequestSerializer, PredictionSerializer
 import warnings
+from spellchecker import SpellChecker
 
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")
 
@@ -16,10 +17,24 @@ warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")
 
 # Create your views here.
 
+
 def extract_symptoms(text):
     # Load the NER model
+    spell = SpellChecker()
+    spell.word_frequency.load_words(['COUGH','MUSCLE_ACHES','TIREDNESS','SORE_THROAT','RUNNY_NOSE','STUFFY_NOSE','FEVER','NAUSEA','VOMITING','DIARRHEA','SHORTNESS_OF_BREATH','DIFFICULTY_BREATHING','LOSS_OF_TASTE','LOSS_OF_SMELL','ITCHY_NOSE','ITCHY_EYES','ITCHY_MOUTH','ITCHY_INNER_EAR','SNEEZING','PINK_EYE','SKIN_RASH', 'CHILLS', 'jOINT_PAIN', 'FATIGUE', 'HEADACHE', 'LOSS_OF_APPETITES', 'PAIN_BEHIND_THE_EYES', 'BACK_PAIN','MALAISE', 'RED_SPOTS_OVER_BODY'])
+    phrases_to_remove = ["I have a", "I have"]
+    for phrase in phrases_to_remove:
+        text = text.replace(phrase, "")
+    symptoms = [symptom.strip().replace(' ', '_') for symptom in text.split(',')]
+    corrected_symptoms = []
+    for symptom in symptoms:
+        correction = spell.correction(symptom)
+        if correction is not None:
+            corrected_symptoms.append(correction.replace('_', ' '))
+
+    corrected_text = ', '.join(corrected_symptoms)
     nlp = spacy.load("models/model-best")
-    doc = nlp(text)
+    doc = nlp(corrected_text)
     extracted_symptoms = []
     for ent in doc.ents:
         if ent.label_ == "SYMPTOMS":  # and ent.text.lower() in symptoms:
