@@ -54,7 +54,7 @@ class RequestView(generics.CreateAPIView):
 
         if is_sinhala is True:
 
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mainapp/balmy-link-383016-9fb29fcd60f2.json'
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'mainapp/balmy-link-383016-eef88c637cc9.json'
             # Set up the translation client
             translate_client = translate.Client()
             # Set the source and target languages
